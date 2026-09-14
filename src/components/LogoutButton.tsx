@@ -1,26 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { logoutAction } from "@/lib/actions";
-import { Spinner } from "./Spinner";
-import { BusyOverlay } from "./BusyOverlay";
+import { FormBusy, SubmitButton } from "@/components/FormBusy";
 
 export function LogoutButton() {
-  const [pending, setPending] = useState(false);
-
   return (
-    <>
-      <BusyOverlay show={pending} label="Déconnexion..." />
-      <form
-        action={async () => {
-          setPending(true);
-          await logoutAction();
-        }}
-      >
-        <button className="btn btn-ghost" type="submit" disabled={pending}>
-          {pending ? <><Spinner /> Déconnexion...</> : "Déconnexion"}
-        </button>
-      </form>
-    </>
+    <form action={logoutAction}>
+      <FormBusy label="Déconnexion..." />
+      <SubmitButton className="btn btn-ghost" pendingLabel="Déconnexion...">
+        Déconnexion
+      </SubmitButton>
+    </form>
   );
 }

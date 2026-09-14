@@ -2,31 +2,25 @@
 
 import { useState } from "react";
 import { loginAction } from "@/lib/actions";
-import { Spinner } from "@/components/Spinner";
-import { BusyOverlay } from "@/components/BusyOverlay";
+import { FormBusy, SubmitButton } from "@/components/FormBusy";
 
 export function LoginForm() {
   const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
   const [show, setShow] = useState(false);
 
   async function onSubmit(formData: FormData) {
-    setPending(true);
     setError("");
     const result = await loginAction(formData);
-    if (result?.error) {
-      setError(result.error);
-      setPending(false);
-    }
+    if (result?.error) setError(result.error);
   }
 
   return (
     <form action={onSubmit}>
-      <BusyOverlay show={pending} label="Connexion en cours..." />
+      <FormBusy label="Connexion en cours..." />
       {error && <div className="error">{error}</div>}
       <label className="field">
         <span>Identifiant</span>
-        <input name="identifiant" autoComplete="username" placeholder="prenom.nom" required disabled={pending} />
+        <input name="identifiant" autoComplete="username" placeholder="prenom.nom" required />
       </label>
       <label className="field">
         <span>Mot de passe</span>
@@ -37,16 +31,15 @@ export function LoginForm() {
             autoComplete="current-password"
             placeholder="••••••••"
             required
-            disabled={pending}
           />
           <button className="password-toggle" type="button" onClick={() => setShow((value) => !value)}>
             {show ? "Masquer" : "Voir"}
           </button>
         </div>
       </label>
-      <button className="btn btn-primary btn-full" type="submit" disabled={pending}>
-        {pending ? <><Spinner /> Connexion...</> : "Entrer dans mon espace"}
-      </button>
+      <SubmitButton className="btn btn-primary btn-full" pendingLabel="Connexion...">
+        Entrer dans mon espace
+      </SubmitButton>
     </form>
   );
 }

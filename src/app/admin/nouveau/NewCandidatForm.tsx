@@ -2,21 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Spinner } from "@/components/Spinner";
-import { BusyOverlay } from "@/components/BusyOverlay";
+import { createCandidatAction } from "@/lib/actions";
+import { FormBusy, SubmitButton } from "@/components/FormBusy";
 
 export function NewCandidatForm({ conseiller }: { conseiller: string }) {
   const [error, setError] = useState("");
   const [created, setCreated] = useState<{ identifiant: string; password: string; candidatId: string } | null>(null);
-  const [pending, setPending] = useState(false);
 
   async function onSubmit(formData: FormData) {
-    setPending(true);
     setError("");
     const result = await createCandidatAction(formData);
     if (result?.error) {
       setError(result.error);
-      setPending(false);
       return;
     }
     if (result?.success) {
@@ -26,7 +23,6 @@ export function NewCandidatForm({ conseiller }: { conseiller: string }) {
         candidatId: result.candidatId,
       });
     }
-    setPending(false);
   }
 
   if (created) {
@@ -53,7 +49,7 @@ export function NewCandidatForm({ conseiller }: { conseiller: string }) {
 
   return (
     <form action={onSubmit}>
-      <BusyOverlay show={pending} label="Création du dossier..." />
+      <FormBusy label="Création du dossier..." />
       {error && <div className="error">{error}</div>}
       <div className="two">
         <label className="field">
@@ -100,9 +96,9 @@ export function NewCandidatForm({ conseiller }: { conseiller: string }) {
           <input name="conseiller" defaultValue={conseiller} />
         </label>
       </div>
-      <button className="btn btn-primary" type="submit" disabled={pending}>
-        {pending ? <><Spinner /> Création...</> : "Créer le dossier"}
-      </button>
+      <SubmitButton className="btn btn-primary" pendingLabel="Création...">
+        Créer le dossier
+      </SubmitButton>
     </form>
   );
 }
