@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { loginAction } from "@/lib/actions";
+import { Spinner } from "@/components/Spinner";
+import { BusyOverlay } from "@/components/BusyOverlay";
 
 export function LoginForm() {
   const [error, setError] = useState("");
@@ -20,10 +22,11 @@ export function LoginForm() {
 
   return (
     <form action={onSubmit}>
+      <BusyOverlay show={pending} label="Connexion en cours..." />
       {error && <div className="error">{error}</div>}
       <label className="field">
         <span>Identifiant</span>
-        <input name="identifiant" autoComplete="username" placeholder="prenom.nom" required />
+        <input name="identifiant" autoComplete="username" placeholder="prenom.nom" required disabled={pending} />
       </label>
       <label className="field">
         <span>Mot de passe</span>
@@ -34,6 +37,7 @@ export function LoginForm() {
             autoComplete="current-password"
             placeholder="••••••••"
             required
+            disabled={pending}
           />
           <button className="password-toggle" type="button" onClick={() => setShow((value) => !value)}>
             {show ? "Masquer" : "Voir"}
@@ -41,7 +45,7 @@ export function LoginForm() {
         </div>
       </label>
       <button className="btn btn-primary btn-full" type="submit" disabled={pending}>
-        {pending ? "Connexion..." : "Entrer dans mon espace"}
+        {pending ? <><Spinner /> Connexion...</> : "Entrer dans mon espace"}
       </button>
     </form>
   );

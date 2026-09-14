@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { updateCandidatAction } from "@/lib/actions";
+import { Spinner } from "@/components/Spinner";
+import { BusyOverlay } from "@/components/BusyOverlay";
 
 type Props = {
   candidat: {
@@ -19,14 +21,18 @@ type Props = {
 
 export function CandidatEditor({ candidat }: Props) {
   const [message, setMessage] = useState("");
+  const [pending, setPending] = useState(false);
 
   async function onSubmit(formData: FormData) {
+    setPending(true);
     const result = await updateCandidatAction(formData);
     setMessage(result?.error ?? "Fiche enregistrée.");
+    setPending(false);
   }
 
   return (
     <form action={onSubmit}>
+      <BusyOverlay show={pending} label="Enregistrement..." />
       <input type="hidden" name="id" value={candidat.id} />
       {message && <div className={message.includes("enregistr") ? "success" : "error"}>{message}</div>}
       <div className="two">
@@ -63,7 +69,9 @@ export function CandidatEditor({ candidat }: Props) {
         <span>Note interne (invisible pour le candidat)</span>
         <textarea name="noteInterne" defaultValue={candidat.noteInterne} />
       </label>
-      <button className="btn btn-primary" type="submit">Enregistrer la fiche</button>
+      <button className="btn btn-primary" type="submit" disabled={pending}>
+        {pending ? <><Spinner /> Enregistrement...</> : "Enregistrer la fiche"}
+      </button>
     </form>
   );
 }

@@ -32,7 +32,9 @@ export default async function LoginPage() {
       </section>
       <section className="login-panel">
         <div className="login-card">
-          <img className="login-logo" src="/logo.png" alt="Hamine Happy Consulting" />
+          <a href="https://haminehappy.fr" title="Retour au site Hamine Happy">
+            <img className="login-logo" src="/logo.png" alt="Hamine Happy Consulting" />
+          </a>
           <div className="center">
             <div className="eyebrow">Espace candidat</div>
             <h1>Heureux de vous revoir</h1>

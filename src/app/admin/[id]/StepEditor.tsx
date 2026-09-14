@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateStepAction } from "@/lib/actions";
 import { StatusBadge } from "@/components/StatusBadge";
-import { StepIcon } from "@/components/StepIcon";
+import { Spinner } from "@/components/Spinner";
+import { BusyOverlay } from "@/components/BusyOverlay";
 import type { Step } from "@/lib/types";
 
 export function StepEditor({ candidatId, step }: { candidatId: string; step: Step }) {
@@ -22,6 +23,7 @@ export function StepEditor({ candidatId, step }: { candidatId: string; step: Ste
 
   return (
     <form action={onSubmit} className="step-card" style={{ marginBottom: 12 }}>
+      <BusyOverlay show={pending} label="Mise à jour de l’étape..." />
       <input type="hidden" name="candidatId" value={candidatId} />
       <input type="hidden" name="stepId" value={step.id} />
       <div className="step-head" style={{ marginBottom: 10 }}>
@@ -58,7 +60,7 @@ export function StepEditor({ candidatId, step }: { candidatId: string; step: Ste
         <textarea name="commentaire" defaultValue={step.commentaire} placeholder="Ex. CV validé. Il manque le relevé de notes." />
       </label>
       <button className="btn btn-light" type="submit" disabled={pending}>
-        {pending ? "Enregistrement..." : "Mettre à jour cette étape"}
+        {pending ? <><Spinner dark /> Enregistrement...</> : "Mettre à jour cette étape"}
       </button>
     </form>
   );

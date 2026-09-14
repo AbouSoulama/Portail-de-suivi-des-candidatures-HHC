@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Manrope } from "next/font/google";
+import { NavigationLoader } from "@/components/NavigationLoader";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -23,7 +24,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className={`${outfit.variable} ${manrope.variable}`}>{children}</body>
+      <body className={`${outfit.variable} ${manrope.variable}`}>
+        <NavigationLoader />
+        {children}
+      </body>
     </html>
   );
 }

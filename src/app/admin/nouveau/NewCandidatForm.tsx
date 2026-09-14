@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createCandidatAction } from "@/lib/actions";
+import { Spinner } from "@/components/Spinner";
+import { BusyOverlay } from "@/components/BusyOverlay";
 
 export function NewCandidatForm({ conseiller }: { conseiller: string }) {
   const [error, setError] = useState("");
@@ -52,6 +53,7 @@ export function NewCandidatForm({ conseiller }: { conseiller: string }) {
 
   return (
     <form action={onSubmit}>
+      <BusyOverlay show={pending} label="Création du dossier..." />
       {error && <div className="error">{error}</div>}
       <div className="two">
         <label className="field">
@@ -99,7 +101,7 @@ export function NewCandidatForm({ conseiller }: { conseiller: string }) {
         </label>
       </div>
       <button className="btn btn-primary" type="submit" disabled={pending}>
-        {pending ? "Création..." : "Créer le dossier"}
+        {pending ? <><Spinner /> Création...</> : "Créer le dossier"}
       </button>
     </form>
   );
