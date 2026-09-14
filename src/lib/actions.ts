@@ -32,11 +32,11 @@ export async function loginAction(formData: FormData) {
   }
 
   await ensureDefaultAdmins();
-  if (!isDbReady()) {
+  if (!(await isDbReady())) {
     return { error: "Le portail n’est pas encore initialisé." };
   }
 
-  const db = readDb();
+  const db = await readDb();
   const user = db.users.find((item) => item.identifiant === identifiant);
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return { error: "Identifiant ou mot de passe incorrect." };
@@ -74,7 +74,7 @@ export async function createCandidatAction(formData: FormData) {
     return { error: "Prénom, nom et identifiant sont obligatoires." };
   }
 
-  const db = readDb();
+  const db = await readDb();
   if (db.users.some((user) => user.identifiant === identifiant)) {
     return { error: "Cet identifiant existe déjà." };
   }
@@ -105,7 +105,7 @@ export async function createCandidatAction(formData: FormData) {
     steps: createDefaultSteps(),
   });
 
-  writeDb(db);
+  await writeDb(db);
 
   return {
     success: true,
@@ -119,7 +119,7 @@ export async function updateCandidatAction(formData: FormData) {
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "");
-  const db = readDb();
+  const db = await readDb();
   const candidat = db.candidats.find((item) => item.id === id);
   if (!candidat) return { error: "Candidat introuvable." };
 
@@ -136,7 +136,7 @@ export async function updateCandidatAction(formData: FormData) {
   candidat.conseiller = String(formData.get("conseiller") ?? "").trim();
   candidat.noteInterne = String(formData.get("noteInterne") ?? "").trim();
 
-  writeDb(db);
+  await writeDb(db);
   return { success: true };
 }
 
@@ -153,7 +153,7 @@ export async function updateStepAction(formData: FormData) {
     return { error: "Statut invalide." };
   }
 
-  const db = readDb();
+  const db = await readDb();
   const candidat = db.candidats.find((item) => item.id === candidatId);
   const step = candidat?.steps.find((item) => item.id === stepId);
   if (!candidat || !step) return { error: "Étape introuvable." };
@@ -161,7 +161,7 @@ export async function updateStepAction(formData: FormData) {
   step.status = status;
   step.commentaire = commentaire;
   step.updatedAt = new Date().toISOString();
-  writeDb(db);
+  await writeDb(db);
   return { success: true };
 }
 
@@ -169,13 +169,13 @@ export async function resetPasswordAction(formData: FormData) {
   await requireAdmin();
 
   const userId = String(formData.get("userId") ?? "");
-  const db = readDb();
+  const db = await readDb();
   const user = db.users.find((item) => item.id === userId && item.role === "candidat");
   if (!user) return { error: "Candidat introuvable." };
 
   const password = generatePassword();
   user.passwordHash = await hashPassword(password);
-  writeDb(db);
+  await writeDb(db);
 
   return { success: true, identifiant: user.identifiant, password };
 }

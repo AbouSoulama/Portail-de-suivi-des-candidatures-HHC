@@ -12,7 +12,7 @@ export default async function AdminPage() {
   if (!session) redirect("/login");
   if (session.role !== "admin") redirect("/suivi");
 
-  const db = readDb();
+  const db = await readDb();
   const rows = db.candidats.map((candidat) => {
     const user = db.users.find((item) => item.id === candidat.userId);
     const progress = progressOf(candidat);

@@ -22,7 +22,7 @@ export default async function SuiviPage() {
   if (!session) redirect("/login");
   if (session.role === "admin") redirect("/admin");
 
-  const db = readDb();
+  const db = await readDb();
   const candidat = db.candidats.find((item) => item.userId === session.id);
   if (!candidat) {
     return (

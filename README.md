@@ -43,9 +43,35 @@ Candidats :
 
 Changez ces mots de passe avant toute mise en ligne.
 
-## Mettre en ligne (GitHub + Hostinger)
+## Où sont les données ?
 
-Le site WordPress `haminehappy.fr` reste tel quel. Le portail se publie à part, idéalement sur `espace.haminehappy.fr`.
+- **En local, sans Supabase** : fichier `data/portail.json` (ignoré par Git). Ça ne convient pas à Vercel.
+- **En ligne (Vercel / plus tard Hostinger)** : **Supabase** (PostgreSQL). C’est la vraie base.
+
+Crée un projet gratuit sur [supabase.com](https://supabase.com) → SQL Editor → colle et exécute `supabase/schema.sql`.
+
+Variables à copier (Settings → API) :
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` (secret, jamais dans le code public)
+
+## Mettre en ligne sur Vercel (pour commencer)
+
+1. Pousse ce code sur GitHub.
+2. Va sur [vercel.com](https://vercel.com) → **Add New** → **Project** → importe le dépôt.
+3. Framework : **Next.js** (détecté tout seul).
+4. Dans **Environment Variables**, ajoute :
+   - `SESSION_SECRET`
+   - `ADMIN_PASSWORD`
+   - `CONSEILLER_PASSWORD`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+5. **Deploy**. Tu obtiens une URL du type `https://xxx.vercel.app`.
+6. Plus tard, tu pourras pointer `espace.haminehappy.fr` vers Vercel, ou migrer vers Hostinger en gardant **la même** base Supabase.
+
+## Mettre en ligne plus tard (GitHub + Hostinger)
+
+Le site WordPress `haminehappy.fr` reste tel quel. Le portail se publie à part, idéalement sur `espace.haminehappy.fr`. Même base Supabase.
 
 ### 1. Envoyer le code sur GitHub
 
@@ -114,3 +140,4 @@ Exemple de bouton HTML à coller dans une page custom :
   Espace candidat
 </a>
 ```
+............

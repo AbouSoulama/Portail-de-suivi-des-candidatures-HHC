@@ -22,7 +22,7 @@ export default async function CandidatAdminPage({
   if (session.role !== "admin") redirect("/suivi");
 
   const { id } = await params;
-  const db = readDb();
+  const db = await readDb();
   const candidat = db.candidats.find((item) => item.id === id);
   if (!candidat) notFound();
   const user = db.users.find((item) => item.id === candidat.userId);
