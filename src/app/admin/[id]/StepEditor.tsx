@@ -1,17 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateStepAction } from "@/lib/actions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { StepIcon } from "@/components/StepIcon";
 import type { Step } from "@/lib/types";
 
 export function StepEditor({ candidatId, step }: { candidatId: string; step: Step }) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
+  const [pending, setPending] = useState(false);
 
   async function onSubmit(formData: FormData) {
+    setPending(true);
     const result = await updateStepAction(formData);
     setMessage(result?.error ?? "Étape mise à jour.");
+    setPending(false);
+    if (!result?.error) router.refresh();
   }
 
   return (
@@ -51,7 +57,9 @@ export function StepEditor({ candidatId, step }: { candidatId: string; step: Ste
         <span>Commentaire visible par le candidat</span>
         <textarea name="commentaire" defaultValue={step.commentaire} placeholder="Ex. CV validé. Il manque le relevé de notes." />
       </label>
-      <button className="btn btn-light" type="submit">Mettre à jour cette étape</button>
+      <button className="btn btn-light" type="submit" disabled={pending}>
+        {pending ? "Enregistrement..." : "Mettre à jour cette étape"}
+      </button>
     </form>
   );
 }

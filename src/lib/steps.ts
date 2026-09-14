@@ -2,36 +2,35 @@ import { generateId } from "./auth";
 import { STEP_TEMPLATES, type Candidat, type Step, type StepStatus } from "./types";
 
 export function syncCandidatSteps(candidat: Candidat): boolean {
-  let changed = false;
+  const existing = new Map(candidat.steps.map((step) => [step.code, step]));
   const now = new Date().toISOString();
+  let changed = false;
 
-  for (const step of candidat.steps) {
-    const template = STEP_TEMPLATES.find((item) => item.code === step.code);
-    if (template && step.label !== template.label) {
-      step.label = template.label;
-      changed = true;
-    }
-  }
-
-  if (!candidat.steps.some((step) => step.code === "admission")) {
-    const admission: Step = {
-      id: generateId(),
-      code: "admission",
-      label: "Admission",
-      status: "a_faire",
-      commentaire: "",
-      updatedAt: now,
-    };
-    const visaIndex = candidat.steps.findIndex((step) => step.code === "visa");
-    if (visaIndex >= 0) {
-      candidat.steps.splice(visaIndex, 0, admission);
-    } else {
-      candidat.steps.push(admission);
+  const next = STEP_TEMPLATES.map((template, index) => {
+    const current = existing.get(template.code);
+    if (current) {
+      if (current.label !== template.label) {
+        current.label = template.label;
+        changed = true;
+      }
+      return current;
     }
     changed = true;
-  }
+    return {
+      id: generateId(),
+      code: template.code,
+      label: template.label,
+      status: index === 0 ? "en_cours" : "a_faire",
+      commentaire: "",
+      updatedAt: now,
+    } satisfies Step;
+  });
 
-  return changed;
+  if (changed || next.length !== candidat.steps.length) {
+    candidat.steps = next;
+    return true;
+  }
+  return false;
 }
 
 export function createDefaultSteps(): Step[] {
@@ -47,11 +46,12 @@ export function createDefaultSteps(): Step[] {
 }
 
 export function progressOf(candidat: Candidat) {
+  const total = Math.max(candidat.steps.length, 1);
   const done = candidat.steps.filter((step) => step.status === "valide").length;
   return {
     done,
     total: candidat.steps.length,
-    percent: Math.round((done / candidat.steps.length) * 100),
+    percent: candidat.steps.length ? Math.round((done / total) * 100) : 0,
   };
 }
 
@@ -66,6 +66,7 @@ export function currentStep(candidat: Candidat): Step | null {
 }
 
 export function globalStatus(candidat: Candidat): StepStatus {
+  if (!candidat.steps.length) return "a_faire";
   if (candidat.steps.every((step) => step.status === "valide")) return "valide";
   if (candidat.steps.some((step) => step.status === "bloque")) return "bloque";
   if (candidat.steps.some((step) => step.status === "en_cours")) return "en_cours";

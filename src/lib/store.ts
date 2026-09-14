@@ -43,31 +43,61 @@ type StepRow = {
   position: number;
 };
 
-function assemble(users: User[], candidatRows: CandidatRow[], stepRows: StepRow[]): Database {
-  const candidats: Candidat[] = candidatRows.map((row) => ({
+function mapUser(row: UserRow): User {
+  return {
+    id: row.id,
+    identifiant: row.identifiant,
+    passwordHash: row.password_hash,
+    role: row.role,
+    prenom: row.prenom,
+    nom: row.nom,
+  };
+}
+
+function mapCandidat(row: CandidatRow, stepRows: StepRow[]): Candidat {
+  return {
     id: row.id,
     userId: row.user_id,
-    telephone: row.telephone,
-    destination: row.destination,
-    programme: row.programme,
-    niveau: row.niveau,
-    conseiller: row.conseiller,
-    noteInterne: row.note_interne,
+    telephone: row.telephone ?? "",
+    destination: row.destination ?? "",
+    programme: row.programme ?? "",
+    niveau: row.niveau ?? "",
+    conseiller: row.conseiller ?? "",
+    noteInterne: row.note_interne ?? "",
     createdAt: row.created_at,
     steps: stepRows
       .filter((step) => step.candidat_id === row.id)
-      .sort((a, b) => a.position - b.position)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
       .map((step) => ({
         id: step.id,
         code: step.code,
         label: step.label,
         status: step.status,
-        commentaire: step.commentaire,
+        commentaire: step.commentaire ?? "",
         updatedAt: step.updated_at,
       })),
-  }));
+  };
+}
 
-  return { users, candidats };
+function stepRowsOf(candidat: Candidat): StepRow[] {
+  return candidat.steps.map((step, position) => ({
+    id: step.id,
+    candidat_id: candidat.id,
+    code: step.code,
+    label: step.label,
+    status: step.status,
+    commentaire: step.commentaire,
+    updated_at: step.updatedAt,
+    position,
+  }));
+}
+
+async function persistMissingSteps(candidats: Candidat[]) {
+  if (!hasSupabase()) return;
+  const rows = candidats.flatMap(stepRowsOf);
+  if (!rows.length) return;
+  const { error } = await getSupabase().from("steps").upsert(rows, { onConflict: "id" });
+  if (error) throw error;
 }
 
 async function readSupabase(): Promise<Database> {
@@ -78,25 +108,50 @@ async function readSupabase(): Promise<Database> {
     supabase.from("steps").select("*"),
   ]);
 
-  if (usersRes.error) throw usersRes.error;
-  if (candidatsRes.error) throw candidatsRes.error;
-  if (stepsRes.error) throw stepsRes.error;
+  if (usersRes.error) throw new Error(`Supabase users: ${usersRes.error.message}`);
+  if (candidatsRes.error) throw new Error(`Supabase candidats: ${candidatsRes.error.message}`);
+  if (stepsRes.error) throw new Error(`Supabase steps: ${stepsRes.error.message}`);
 
-  const users: User[] = (usersRes.data as UserRow[]).map((row) => ({
-    id: row.id,
-    identifiant: row.identifiant,
-    passwordHash: row.password_hash,
-    role: row.role,
-    prenom: row.prenom,
-    nom: row.nom,
-  }));
-
-  return assemble(users, (candidatsRes.data ?? []) as CandidatRow[], (stepsRes.data ?? []) as StepRow[]);
+  const stepRows = (stepsRes.data ?? []) as StepRow[];
+  const users = ((usersRes.data ?? []) as UserRow[]).map(mapUser);
+  const candidats = ((candidatsRes.data ?? []) as CandidatRow[]).map((row) => mapCandidat(row, stepRows));
+  return { users, candidats };
 }
 
-async function writeSupabase(db: Database) {
+function readJson(): Database {
+  if (!existsSync(DATA_FILE)) return emptyDb();
+  const parsed = JSON.parse(readFileSync(DATA_FILE, "utf8")) as Database;
+  return { users: parsed.users ?? [], candidats: parsed.candidats ?? [] };
+}
+
+function writeJson(db: Database) {
+  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+  const tmp = `${DATA_FILE}.tmp`;
+  writeFileSync(tmp, JSON.stringify(db, null, 2), "utf8");
+  renameSync(tmp, DATA_FILE);
+}
+
+export async function readDb(): Promise<Database> {
+  const db = hasSupabase() ? await readSupabase() : readJson();
+  const changed = db.candidats.filter((candidat) => syncCandidatSteps(candidat));
+  if (changed.length) {
+    if (hasSupabase()) {
+      await persistMissingSteps(changed);
+    } else {
+      writeJson(db);
+    }
+  }
+  return db;
+}
+
+export async function writeDb(db: Database) {
+  if (!hasSupabase()) {
+    writeJson(db);
+    return;
+  }
+
   const supabase = getSupabase();
-  const userRows = db.users.map((user) => ({
+  const users = db.users.map((user) => ({
     id: user.id,
     identifiant: user.identifiant,
     password_hash: user.passwordHash,
@@ -104,7 +159,7 @@ async function writeSupabase(db: Database) {
     prenom: user.prenom,
     nom: user.nom,
   }));
-  const candidatRows = db.candidats.map((candidat) => ({
+  const candidats = db.candidats.map((candidat) => ({
     id: candidat.id,
     user_id: candidat.userId,
     telephone: candidat.telephone,
@@ -115,82 +170,47 @@ async function writeSupabase(db: Database) {
     note_interne: candidat.noteInterne,
     created_at: candidat.createdAt,
   }));
-  const stepRows = db.candidats.flatMap((candidat) =>
-    candidat.steps.map((step, position) => ({
-      id: step.id,
-      candidat_id: candidat.id,
-      code: step.code,
-      label: step.label,
-      status: step.status,
-      commentaire: step.commentaire,
-      updated_at: step.updatedAt,
-      position,
-    }))
-  );
+  const steps = db.candidats.flatMap(stepRowsOf);
 
-  const [usersUpsert, candidatsUpsert, stepsUpsert] = await Promise.all([
-    supabase.from("users").upsert(userRows),
-    supabase.from("candidats").upsert(candidatRows),
-    supabase.from("steps").upsert(stepRows),
-  ]);
-  if (usersUpsert.error) throw usersUpsert.error;
-  if (candidatsUpsert.error) throw candidatsUpsert.error;
-  if (stepsUpsert.error) throw stepsUpsert.error;
-
-  const userIds = db.users.map((user) => user.id);
-  const candidatIds = db.candidats.map((candidat) => candidat.id);
-  const stepIds = stepRows.map((step) => step.id);
-
-  if (userIds.length) {
-    const extraUsers = await supabase.from("users").delete().not("id", "in", `(${userIds.join(",")})`);
-    if (extraUsers.error) throw extraUsers.error;
+  if (users.length) {
+    const { error } = await supabase.from("users").upsert(users, { onConflict: "id" });
+    if (error) throw new Error(`Supabase users upsert: ${error.message}`);
   }
-  if (candidatIds.length) {
-    const extraCandidats = await supabase.from("candidats").delete().not("id", "in", `(${candidatIds.join(",")})`);
-    if (extraCandidats.error) throw extraCandidats.error;
+  if (candidats.length) {
+    const { error } = await supabase.from("candidats").upsert(candidats, { onConflict: "id" });
+    if (error) throw new Error(`Supabase candidats upsert: ${error.message}`);
   }
-  if (stepIds.length) {
-    const extraSteps = await supabase.from("steps").delete().not("id", "in", `(${stepIds.join(",")})`);
-    if (extraSteps.error) throw extraSteps.error;
+  if (steps.length) {
+    const { error } = await supabase.from("steps").upsert(steps, { onConflict: "id" });
+    if (error) throw new Error(`Supabase steps upsert: ${error.message}`);
   }
 }
 
-function readJson(): Database {
-  if (!existsSync(DATA_FILE)) {
-    return emptyDb();
-  }
-  const raw = readFileSync(DATA_FILE, "utf8");
-  const parsed = JSON.parse(raw) as Database;
-  return {
-    users: parsed.users ?? [],
-    candidats: parsed.candidats ?? [],
-  };
-}
-
-function writeJson(db: Database) {
-  if (!existsSync(DATA_DIR)) {
-    mkdirSync(DATA_DIR, { recursive: true });
-  }
-  const tmp = `${DATA_FILE}.tmp`;
-  writeFileSync(tmp, JSON.stringify(db, null, 2), "utf8");
-  renameSync(tmp, DATA_FILE);
-}
-
-export async function readDb(): Promise<Database> {
-  const db = hasSupabase() ? await readSupabase() : readJson();
-  const changed = db.candidats.some((candidat) => syncCandidatSteps(candidat));
-  if (changed) {
-    await writeDb(db);
-  }
-  return db;
-}
-
-export async function writeDb(db: Database) {
+export async function updateStepRecord(stepId: string, status: Step["status"], commentaire: string) {
+  const updatedAt = new Date().toISOString();
   if (hasSupabase()) {
-    await writeSupabase(db);
-    return;
+    const { data, error } = await getSupabase()
+      .from("steps")
+      .update({ status, commentaire, updated_at: updatedAt })
+      .eq("id", stepId)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(`Supabase step update: ${error.message}`);
+    if (!data) return false;
+    return true;
   }
-  writeJson(db);
+
+  const db = readJson();
+  for (const candidat of db.candidats) {
+    const step = candidat.steps.find((item) => item.id === stepId);
+    if (!step) continue;
+    step.status = status;
+    step.commentaire = commentaire;
+    step.updatedAt = updatedAt;
+    writeJson(db);
+    return true;
+  }
+  return false;
 }
 
 export async function isDbReady() {

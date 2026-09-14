@@ -10,7 +10,7 @@ import {
   hashPassword,
   verifyPassword,
 } from "./auth";
-import { ensureDefaultAdmins, isDbReady, readDb, writeDb } from "./store";
+import { ensureDefaultAdmins, isDbReady, readDb, updateStepRecord, writeDb } from "./store";
 import { createDefaultSteps } from "./steps";
 import type { StepStatus } from "./types";
 
@@ -158,11 +158,13 @@ export async function updateStepAction(formData: FormData) {
   const step = candidat?.steps.find((item) => item.id === stepId);
   if (!candidat || !step) return { error: "Étape introuvable." };
 
-  step.status = status;
-  step.commentaire = commentaire;
-  step.updatedAt = new Date().toISOString();
-  await writeDb(db);
-  return { success: true };
+  try {
+    const ok = await updateStepRecord(stepId, status, commentaire);
+    if (!ok) return { error: "Impossible d’enregistrer cette étape." };
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Erreur d’enregistrement." };
+  }
 }
 
 export async function resetPasswordAction(formData: FormData) {
