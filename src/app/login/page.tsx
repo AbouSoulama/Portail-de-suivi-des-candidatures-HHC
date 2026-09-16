@@ -12,25 +12,7 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="login-wrap">
-      <section className="login-stage">
-        <div className="orb orb-a" />
-        <div className="orb orb-b" />
-        <div>
-          <div className="login-kicker">Hamine Happy Consulting · Espace privé</div>
-          <h1>De l’orientation au départ, votre dossier sous les yeux.</h1>
-          <p>
-            Chaque étape est mise à jour par votre conseiller. Vous voyez clairement
-            où vous en êtes — sans relancer, sans attendre.
-          </p>
-          <div className="login-destinations">
-            {destinations.map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-          </div>
-        </div>
-        <p className="login-legal">Cabinet reconnu au Burkina Faso · Accompagnement international</p>
-      </section>
+   
       <section className="login-panel">
         <div className="login-card">
           <SiteHomeLink className="login-logo-link">
@@ -44,6 +26,6 @@ export default async function LoginPage() {
           <LoginForm />
         </div>
       </section>
-    </div>
+    
   );
 }
