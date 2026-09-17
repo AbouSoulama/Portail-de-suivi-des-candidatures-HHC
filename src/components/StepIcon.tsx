@@ -6,6 +6,7 @@ const ICONS: Record<string, string> = {
   admission: "M12 3l8 4v6c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z",
   visa: "M4 6h16v12H4zm4 0v12m4-8h5",
   depart: "M3 12h12l6-4v8l-6-4H3z",
+  accompagnement: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 20c0-2.5 2-4.5 4.5-4.5h1C12 15.5 14 17.5 14 20M14 20c0-2.2 1.6-4 3.8-4.4 2.4.2 4.2 2.2 4.2 4.4",
 };
 
 export function StepIcon({ code }: { code: string }) {

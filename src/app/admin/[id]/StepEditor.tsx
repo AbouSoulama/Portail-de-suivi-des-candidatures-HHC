@@ -6,11 +6,15 @@ import { updateStepAction } from "@/lib/actions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { StepIcon } from "@/components/StepIcon";
 import { FormBusy, SubmitButton } from "@/components/FormBusy";
-import type { Step } from "@/lib/types";
+import { statusOptions, type Step } from "@/lib/types";
 
 export function StepEditor({ candidatId, step }: { candidatId: string; step: Step }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
+  const options = statusOptions(step.code);
+  const selected = options.some((option) => option.value === step.status)
+    ? step.status
+    : options[0].value;
 
   async function onSubmit(formData: FormData) {
     const result = await updateStepAction(formData);
@@ -35,21 +39,10 @@ export function StepEditor({ candidatId, step }: { candidatId: string; step: Ste
       {message && <div className={message.includes("mise à jour") ? "success" : "error"}>{message}</div>}
       <label className="field">
         <span>Statut</span>
-        <select name="status" defaultValue={step.status === "bloque" && step.code === "admission" ? "a_faire" : step.status}>
-          {step.code === "admission" ? (
-            <>
-              <option value="a_faire">À faire</option>
-              <option value="en_cours">En cours</option>
-              <option value="valide">Obtenue</option>
-            </>
-          ) : (
-            <>
-              <option value="a_faire">À faire</option>
-              <option value="en_cours">En cours</option>
-              <option value="valide">Validé</option>
-              <option value="bloque">En attente</option>
-            </>
-          )}
+        <select name="status" defaultValue={selected}>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
         </select>
       </label>
       <label className="field">

@@ -20,7 +20,7 @@ export function LoginForm() {
       {error && <div className="error">{error}</div>}
       <label className="field">
         <span>Identifiant</span>
-        <input name="identifiant" autoComplete="username" placeholder="prenom.nom" required />
+        <input name="identifiant" autoComplete="username" placeholder="ex:ZY2610075" required />
       </label>
       <label className="field">
         <span>Mot de passe</span>

@@ -1,4 +1,4 @@
--- Restaure les 7 étapes pour chaque candidat déjà créé.
+-- Restaure les étapes pour chaque candidat déjà créé.
 -- Supabase → SQL Editor → Run
 
 insert into steps (id, candidat_id, code, label, status, commentaire, position)
@@ -15,7 +15,8 @@ cross join (
     ('candidatures', 'Candidatures & demande admissions', 3),
     ('admission', 'Admission', 4),
     ('visa', 'Visa étudiant', 5),
-    ('depart', 'Préparation au départ', 6)
+    ('depart', 'Départ', 6),
+    ('accompagnement', 'Accompagnement', 7)
 ) as t(code, label, position)
 where not exists (
   select 1 from steps s
@@ -33,6 +34,7 @@ from (
     ('candidatures', 'Candidatures & demande admissions', 3),
     ('admission', 'Admission', 4),
     ('visa', 'Visa étudiant', 5),
-    ('depart', 'Préparation au départ', 6)
+    ('depart', 'Départ', 6),
+    ('accompagnement', 'Accompagnement', 7)
 ) as t(code, label, position)
 where s.code = t.code;

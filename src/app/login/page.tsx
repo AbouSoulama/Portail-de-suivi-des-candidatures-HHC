@@ -12,20 +12,22 @@ export default async function LoginPage() {
   }
 
   return (
-   
-      <section className="login-panel">
-        <div className="login-card">
-          <SiteHomeLink className="login-logo-link">
-            <img className="login-logo" src="/logo.png" alt="Hamine Happy Consulting" />
-          </SiteHomeLink>
-          <div className="center">
-            <div className="eyebrow">Espace candidat</div>
-            <h1>Heureux de vous revoir</h1>
-            <p className="lead">Identifiants transmis par votre conseiller Hamine Happy.</p>
-          </div>
-          <LoginForm />
+    <section className="login-panel login-solo">
+      <div className="login-card">
+        <SiteHomeLink className="login-logo-link">
+          <img className="login-logo" src="/logo.png" alt="Hamine Happy Consulting" />
+        </SiteHomeLink>
+        <div className="center">
+          <div className="eyebrow">Espace candidat</div>
+          <p className="login-reserve">
+            Cet espace est réservé aux candidats accompagnés par Hamine Happy Consulting,
+            titulaires d’une quittance et d’un contrat.
+          </p>
+          <h1>Heureux de vous revoir</h1>
+          <p className="lead">Identifiants transmis par votre conseiller Hamine Happy.</p>
         </div>
-      </section>
-    
+        <LoginForm />
+      </div>
+    </section>
   );
 }

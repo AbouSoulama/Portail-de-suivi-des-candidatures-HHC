@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { resetPasswordAction } from "@/lib/actions";
 import { FormBusy, SubmitButton } from "@/components/FormBusy";
+import { PasswordAssignFields } from "@/components/PasswordAssignFields";
 
 export function ResetPassword({ userId }: { userId: string }) {
   const [result, setResult] = useState<{ identifiant: string; password: string } | null>(null);
@@ -22,7 +23,7 @@ export function ResetPassword({ userId }: { userId: string }) {
 
   return (
     <form action={onSubmit}>
-      <FormBusy label="Génération du mot de passe..." />
+      <FormBusy label="Mise à jour du mot de passe..." />
       <input type="hidden" name="userId" value={userId} />
       {error && <div className="error">{error}</div>}
       {result && (
@@ -31,8 +32,9 @@ export function ResetPassword({ userId }: { userId: string }) {
           <code>{result.password}</code>
         </div>
       )}
-      <SubmitButton className="btn btn-light" pendingLabel="Génération..." dark>
-        Générer un nouveau mot de passe
+      <PasswordAssignFields />
+      <SubmitButton className="btn btn-light" pendingLabel="Enregistrement..." dark>
+        Enregistrer le mot de passe
       </SubmitButton>
     </form>
   );

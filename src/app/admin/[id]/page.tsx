@@ -59,6 +59,7 @@ export default async function CandidatAdminPage({
                 id: candidat.id,
                 prenom: user.prenom,
                 nom: user.nom,
+                identifiant: user.identifiant,
                 telephone: candidat.telephone,
                 destination: candidat.destination,
                 programme: candidat.programme,

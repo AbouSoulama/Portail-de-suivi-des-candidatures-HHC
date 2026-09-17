@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createCandidatAction } from "@/lib/actions";
 import { FormBusy, SubmitButton } from "@/components/FormBusy";
+import { PasswordAssignFields } from "@/components/PasswordAssignFields";
 
 export function NewCandidatForm({ conseiller }: { conseiller: string }) {
   const [error, setError] = useState("");
@@ -63,8 +64,9 @@ export function NewCandidatForm({ conseiller }: { conseiller: string }) {
       </div>
       <label className="field">
         <span>Identifiant de connexion</span>
-        <input name="identifiant" placeholder="ex. aissata.sawadogo" required />
+        <input name="identifiant" placeholder="ex:ZY2610075" required />
       </label>
+      <PasswordAssignFields />
       <div className="two">
         <label className="field">
           <span>Téléphone</span>

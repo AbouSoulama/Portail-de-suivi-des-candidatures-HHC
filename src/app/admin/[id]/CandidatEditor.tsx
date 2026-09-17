@@ -9,6 +9,7 @@ type Props = {
     id: string;
     prenom: string;
     nom: string;
+    identifiant: string;
     telephone: string;
     destination: string;
     programme: string;
@@ -41,6 +42,10 @@ export function CandidatEditor({ candidat }: Props) {
           <input name="nom" defaultValue={candidat.nom} />
         </label>
       </div>
+      <label className="field">
+        <span>Identifiant</span>
+        <input name="identifiant" defaultValue={candidat.identifiant} placeholder="ex:ZY2610075" required />
+      </label>
       <label className="field">
         <span>Téléphone</span>
         <input name="telephone" defaultValue={candidat.telephone} />
