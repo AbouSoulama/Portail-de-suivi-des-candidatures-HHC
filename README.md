@@ -28,20 +28,12 @@ npm run dev
 
 Ouvrir [http://localhost:3000](http://localhost:3000)
 
-### Comptes de démo
+### Comptes conseillers
 
-Conseillers :
+- `MHO2026` — Hamine OUEDRAOGO
+- `MAS2026` — Minon Aboubacar SOULAMA
 
-- `hamine` / `Hamine2026!`
-- `conseiller` / `Conseil2026!`
-
-Candidats :
-
-- `aissata.sawadogo` / `Demo2026!`
-- `ibrahim.kabore` / `Demo2026!`
-- `fatou.traore` / `Demo2026!`
-
-Changez ces mots de passe avant toute mise en ligne.
+Les candidats sont créés ensuite par les conseillers (pas de comptes démo).
 
 ## Où sont les données ?
 
@@ -62,8 +54,6 @@ Variables à copier (Settings → API) :
 3. Framework : **Next.js** (détecté tout seul).
 4. Dans **Environment Variables**, ajoute :
    - `SESSION_SECRET`
-   - `ADMIN_PASSWORD`
-   - `CONSEILLER_PASSWORD`
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
 5. **Deploy**. Tu obtiens une URL du type `https://xxx.vercel.app`.
@@ -113,7 +103,6 @@ Connecte GitHub, choisis le dépôt `portail-hamine-happy`, puis :
 Variables d’environnement à ajouter :
 
 - `SESSION_SECRET` = une longue phrase secrète (pas celle du PC)
-- `ADMIN_PASSWORD` = mot de passe des 2 comptes conseillers (optionnel)
 - `NODE_ENV` = `production`
 
 Puis **Deploy**.
@@ -122,8 +111,8 @@ Si tu ne vois pas « Node.js Apps », ton offre actuelle est seulement WordPress
 
 ### 4. Premier accès
 
-Comptes conseillers : `hamine` et `conseiller`.  
-Mot de passe : celui de `ADMIN_PASSWORD`, sinon `Hamine2026!` / `Conseil2026!`. Change-les tout de suite.
+Comptes conseillers : `MHO2026` (Hamine OUEDRAOGO) et `MAS2026` (Minon Aboubacar SOULAMA).  
+Après un déploiement, lance `npm run seed` une fois (avec les variables Supabase) pour vider les anciens comptes et recréer ces 2 conseillers.
 
 ### 5. Bouton sur WordPress
 

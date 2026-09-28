@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import path from "path";
 import { getSupabase, hasSupabase } from "./supabase";
 import { syncCandidatSteps } from "./steps";
+import { STAFF_ACCOUNTS } from "./staff";
 import type { Candidat, Database, Step, User } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -218,27 +219,34 @@ export async function isDbReady() {
   return db.users.some((user) => user.role === "admin");
 }
 
+export async function replaceDb(db: Database) {
+  if (!hasSupabase()) {
+    writeJson(db);
+    return;
+  }
+
+  const supabase = getSupabase();
+  const tables = ["steps", "candidats", "users"] as const;
+  for (const table of tables) {
+    const { error } = await supabase.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    if (error) throw new Error(`Supabase ${table} delete: ${error.message}`);
+  }
+  await writeDb(db);
+}
+
 export async function ensureDefaultAdmins() {
   if (await isDbReady()) return;
   const { hashPassword, generateId } = await import("./auth");
   const db = await readDb();
-  db.users.push(
-    {
+  for (const account of STAFF_ACCOUNTS) {
+    db.users.push({
       id: generateId(),
-      identifiant: "hamine",
-      passwordHash: await hashPassword(process.env.ADMIN_PASSWORD || "Hamine2026!"),
+      identifiant: account.identifiant,
+      passwordHash: await hashPassword(account.password),
       role: "admin",
-      prenom: "Hamine",
-      nom: "Ouedraogo",
-    },
-    {
-      id: generateId(),
-      identifiant: "conseiller",
-      passwordHash: await hashPassword(process.env.CONSEILLER_PASSWORD || process.env.ADMIN_PASSWORD || "Conseil2026!"),
-      role: "admin",
-      prenom: "Conseiller",
-      nom: "Hamine Happy",
-    }
-  );
+      prenom: account.prenom,
+      nom: account.nom,
+    });
+  }
   await writeDb(db);
 }
