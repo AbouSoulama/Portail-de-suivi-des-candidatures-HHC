@@ -198,3 +198,57 @@ export async function resetPasswordAction(formData: FormData) {
 
   return { success: true, identifiant: user.identifiant, password };
 }
+
+function foldName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function foldPhone(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+export async function forgotPasswordAction(formData: FormData) {
+  const identifiant = String(formData.get("identifiant") ?? "").trim();
+  const prenom = String(formData.get("prenom") ?? "").trim();
+  const nom = String(formData.get("nom") ?? "").trim();
+  const telephone = String(formData.get("telephone") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const confirmation = String(formData.get("confirmation") ?? "");
+
+  const invalid = "Les informations ne correspondent pas. Vérifiez vos saisies ou contactez votre conseiller.";
+
+  if (!identifiant || !prenom || !nom || !password || !confirmation) {
+    return { error: "Tous les champs obligatoires doivent être remplis." };
+  }
+  if (password.length < 6) {
+    return { error: "Le nouveau mot de passe doit contenir au moins 6 caractères." };
+  }
+  if (password !== confirmation) {
+    return { error: "Les deux mots de passe ne sont pas identiques." };
+  }
+
+  await ensureDefaultAdmins();
+  const db = await readDb();
+  const user = db.users.find((item) => item.identifiant.toLowerCase() === identifiant.toLowerCase());
+  if (!user) return { error: invalid };
+  if (foldName(user.prenom) !== foldName(prenom) || foldName(user.nom) !== foldName(nom)) {
+    return { error: invalid };
+  }
+
+  if (user.role === "candidat") {
+    const candidat = db.candidats.find((item) => item.userId === user.id);
+    const expected = foldPhone(candidat?.telephone ?? "");
+    if (!expected || foldPhone(telephone) !== expected) {
+      return { error: invalid };
+    }
+  }
+
+  user.passwordHash = await hashPassword(password);
+  await writeDb(db);
+  return { success: true };
+}

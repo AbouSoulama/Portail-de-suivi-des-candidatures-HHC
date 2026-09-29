@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { loginAction } from "@/lib/actions";
 import { FormBusy, SubmitButton } from "@/components/FormBusy";
 
@@ -40,6 +41,9 @@ export function LoginForm() {
       <SubmitButton className="btn btn-primary btn-full" pendingLabel="Connexion...">
         Entrer dans mon espace
       </SubmitButton>
+      <p className="login-extra">
+        <Link href="/login/mot-de-passe-oublie">Mot de passe oublié ?</Link>
+      </p>
     </form>
   );
 }

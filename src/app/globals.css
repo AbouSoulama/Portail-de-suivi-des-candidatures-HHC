@@ -903,6 +903,28 @@ tbody tr:hover { background: rgba(243, 241, 236, 0.7); }
   cursor: pointer;
 }
 
+.login-extra {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.login-extra a {
+  color: var(--red);
+}
+
+.login-extra a:hover {
+  text-decoration: underline;
+}
+
+.field-hint {
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .login-journey {
   display: grid;
   gap: 8px;
